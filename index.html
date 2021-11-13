@@ -1,0 +1,257 @@
+ <!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.84.0">
+    <title>Проверка Excel</title>
+    <!-- Bootstrap core CSS -->
+    <link href="assets/dist/css/bootstrap.min.css" rel="stylesheet">
+ 
+  </head>
+  <body class="bg-light">
+    
+<div class="container">
+  <main>
+    <div class="py-5 text-center">
+      <img class="d-block mx-auto mb-4" src="assets/brand/bootstrap-logo.svg" alt="" width="72" height="57">
+      <h2>Проверка Excel</h2>
+         <p class="lead">
+            Проверяет файл на ошибки при заполнении (даты, ФИО, и т.д.). <br>
+            Допустимое расширение excel файла: (xlsx).<br>
+            Можно использовать файлы закрытые паролем. <br>
+            <small class="text-danger d-none">Внимание!* чтобы использовать файлы без пароля, постоянный пароль должен быть удалён</small>
+          </p>
+    </div>
+ 	<div class="row mx-auto w-400" >
+    <div class="col-12 mb-4">
+      <form  class="row gy-2 gx-3 align-items-center">
+        <div class="col-12">  <label for="exampleInputEmail1" class="form-label" >Смена постоянного пароля</label></div>
+        <div class="col-auto"> 
+ 
+        <input id="permanentPsw" class="form-control" type="text" name="permanentPsw" placeholder="Постоянный пароль"> 
+      </div>
+      <div class="col-auto"> 
+        <button id="sPass" class="btn btn-success" onclick="savePass()">Сохранить</button>
+        <button id="dPass" class="btn btn-danger d-none" onclick="dellPass()">Удалить пароль</button>  
+      </div>
+      </form>
+      <p id="savePwd"></p>
+      <button id="delPass" type="button" class="btn btn-link text-danger d-none">Удалить пароль</button>
+    </div>
+    <img id="loader" src="assets/brand/loader.gif" alt="" >
+    <small id="errPWD" class="text-danger d-none">Ошибка: удалите постоянный пароль!</small>
+ 		<div class="col-12">                                                                                 
+      <!-- form -->
+ 
+      <form enctype="multipart/form-data" class="row gy-2 gx-3 align-items-center">
+
+        <div class="col-auto">        
+          <input class="form-control" type="file" id="formFile" name="uploadfile">
+        </div>
+        <div id="invalidPassword" class="col-7 mt-3 d-none">
+                   
+            <input id="pass" class="form-control" type="text" name="pass" placeholder="Пароль" >    
+        
+        </div>
+        <div id="invalidPasswordButton" class="col-auto mt-3 d-none">
+          <button id="butt" type="button" class="btn btn-success">Применить</button> 
+        </div>
+        <div class="invalid-feed d-none">Необходимо ввести пароль</div>
+      </form>
+      <!-- end form -->
+ 		</div>
+	 	 
+ 	</div>
+  <div class="row mx-auto w-700">
+    <div class="col-12 mt-5">
+      <div class="response"></div>
+    </div>
+  </div>
+  </main>
+ 
+  <footer>
+    <p class="mb-1 start-50 position-fixed text-small bottom-0">&copy; 2021 </p>
+  </footer>
+</div>
+    <script src="assets/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+
+   if(localStorage.getItem('pp')) {
+     document.getElementById('permanentPsw').setAttribute('disabled', 'disabled')
+     document.getElementById('dPass').classList.toggle('d-none')
+     document.getElementById('sPass').classList.toggle('d-none')
+     document.getElementsByTagName('small')[0].classList.toggle('d-none')
+   } else {
+     
+   }
+ 
+   const dellPass = () => {
+   localStorage.removeItem('pp'); 
+     document.getElementById('permanentPsw').disabled = false;
+     document.getElementById('dPass').classList.toggle('d-none')
+     document.getElementById('sPass').classList.toggle('d-none')
+     document.getElementsByTagName('small')[0].classList.toggle('d-none')
+   }
+   const savePass = () => {
+      const permanentPsw = document.getElementById('permanentPsw').value
+      localStorage.setItem('pp', permanentPsw)
+      if (localStorage.getItem('pp')) {
+        const savePwd = document.getElementById('savePwd')
+        savePwd.innerText = 'Пароль сохранён!'
+      }
+   }   
+
+
+   const rr = function(json, pass) { 
+      // vars
+      const loader = document.getElementById('loader')
+      const dnone = document.getElementById('formFile')
+      const resDiv = document.getElementsByClassName('response')[0]
+      const input = document.getElementById('formFile');
+      const inputPass = document.getElementById('invalidPassword')
+      const inputButt = document.getElementById('invalidPasswordButton')
+      const inputMess = document.getElementsByClassName('invalid-feed')[0] 
+      
+      // clear node
+      resDiv.innerHTML = '';
+     
+      if(pass) {
+        if(!localStorage.getItem('pp')) {
+          loader.classList.toggle('dnone')
+        }   
+        inputPass.classList.add('d-none')
+        inputButt.classList.add('d-none')
+        inputMess.classList.add('d-none')
+      }
+      if(!json) {     
+        dnone.classList.toggle('fade')
+        loader.classList.toggle('dnone')
+      }
+ 
+ 
+     if(json) {
+      //console.log(json)
+      if(json.res.error.true === 'true') {
+        dnone.classList.toggle('fade');
+        loader.classList.toggle('dnone');
+        resDiv.innerHTML += `<p class="fs-4 text-success mb-1">${json.res.file['load']} ...</p>`
+        resDiv.innerHTML += `<div class="alert alert-success" role="alert">Файл прошел проверку</div>`;
+      }
+     
+      if(json.res.success) {
+        dnone.classList.toggle('fade');
+        loader.classList.toggle('dnone');
+        dnone.value = ""
+        //response
+        const response = json.res.success;
+        
+        resDiv.innerHTML += `<p class="fs-4 text-success mb-1">${json.res.file['load']} ...</p>`
+        resDiv.innerHTML += `<p class="fs-4 text-danger pb-4">${json.res.error['errInFile']} ...</p>`
+        for (val in response) {
+          resDiv.innerHTML += `<div class="alert alert-danger" role="alert">${response[val]}</div>`;
+        }
+      }
+
+     if(json.res.error['invalidPassword'] === 'invalidPassword') {
+      
+      inputPass.classList.remove('d-none')
+      inputButt.classList.remove('d-none')
+      inputMess.classList.remove('d-none')
+      loader.classList.toggle('dnone')
+      }
+     } 
+    } 
+    // select file input
+    const input = document.getElementById('formFile');
+    const pass = document.getElementById('pass');
+    const butt = document.getElementById('butt');
+    // add event listener
+    input.addEventListener('change', () => {
+        uploadFile(input.files[0])
+
+        rr()
+    });
+
+    butt.addEventListener('click', () => {
+        uploadFile(input.files[0], pass.value) 
+    });
+
+    const errPassf = (errpwd) => {
+      if(errpwd.message = 'Unexpected end of JSON input') {
+         loader.classList.toggle('dnone')
+         document.getElementById('errPWD').classList.toggle('d-none')
+         }
+    }
+
+    const uploadFile = (file, pass) => {
+        // add file to FormData object
+        const fd = new FormData();
+        fd.append('uploadfile', file)
+         if(localStorage.getItem('pp')) {
+          pass = localStorage.getItem('pp')
+        } 
+
+        if(pass) {
+          fd.append('pass', pass)
+        }
+
+        // url
+        const url = location.pathname + 'file.php'
+        // send `POST` request
+        fetch(url, {
+            method: 'POST',
+            body: fd
+        })
+
+        .then(res => res.json())
+        .then(json =>  rr(json, pass))
+        .catch(err => errPassf(err) );
+        
+
+    }
+    </script>
+   <style>
+     #slideSource {
+        opacity: 1;
+        transition: opacity 1s; 
+      }
+
+      #slideSource.fade {
+        opacity: 0;
+      }
+      .bg-light {
+        background-color: #f5f7f6!important;
+      }
+
+      #loader {
+          
+          display: none;
+      }
+      #loader.dnone {
+          
+          display: block;
+      }
+
+    .invalid-feed {
+      display: block; 
+      width: 100%;
+      margin-top: 0.25rem;
+      font-size: .875em;
+      color: #dc3545;
+    }
+    .w-700 {
+       max-width: 708px;
+    }
+    .w-400 {
+      max-width: 400px;
+    }
+
+  
+   </style> 
+  </body>
+</html>
+
+
